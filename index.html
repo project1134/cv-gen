@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Generator</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: #222;
+  background: #fff;
+  padding: 32px 20px 60px;
+}
+
+.container { max-width: 720px; margin: 0 auto; }
+
+.app-header {
+  margin-bottom: 36px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #222;
+}
+.app-header h1 { font-size: 20px; font-weight: 700; }
+.app-header p  { margin-top: 4px; font-size: 13px; color: #666; }
+
+.card {
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #ddd;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #222;
+  margin-bottom: 18px;
+}
+
+.grid-2     { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.egrid-2    { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.egrid-ach  { display: grid; grid-template-columns: 120px 1fr; gap: 10px; }
+.col-span-2 { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; font-weight: 600; color: #555; }
+.field input, .field textarea {
+  border: 1px solid #ccc;
+  padding: 7px 9px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #222;
+  width: 100%;
+  background: #fff;
+  border-radius: 3px;
+}
+.field input:focus, .field textarea:focus {
+  outline: none;
+  border-color: #555;
+}
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+.dynamic-entry {
+  border: 1px solid #ddd;
+  background: #fafafa;
+  padding: 14px 42px 14px 14px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.remove-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none;
+  font-size: 20px; line-height: 1;
+  color: #aaa; cursor: pointer; padding: 0 4px;
+}
+.remove-btn:hover { color: #c00; }
+
+.add-btn {
+  width: 100%; margin-top: 4px;
+  padding: 8px; background: #fff;
+  border: 1px dashed #bbb;
+  font-family: inherit; font-size: 13px;
+  color: #555; cursor: pointer;
+  border-radius: 3px;
+}
+.add-btn:hover { background: #f5f5f5; color: #222; }
+
+.generate-section { padding-top: 24px; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.generate-btn {
+  background: #222; color: #fff;
+  border: 1px solid #222;
+  padding: 10px 28px;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; border-radius: 3px;
+}
+.generate-btn:hover { background: #444; border-color: #444; }
+.generate-btn.outline {
+  background: #fff; color: #222;
+}
+.generate-btn.outline:hover { background: #f0f0f0; }
+
+.message { display: none; margin-top: 12px; font-size: 13px; }
+.message.success { color: #1a7f3c; }
+.message.error   { color: #c00; }
+
+@media (max-width: 540px) {
+  .grid-2, .egrid-2, .egrid-ach { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: 1; }
+  .dynamic-entry { padding-right: 40px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="app-header">
+    <h1>CV Generator</h1>
+    <p>Fill in the form below and download your CV as PDF or Word.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Personal Data</div>
+    <div class="grid-2">
+      <div class="field"><label>Full Name *</label>
+        <input id="fullName" type="text" placeholder="e.g. Mary Flomo Kollie"></div>
+      <div class="field"><label>Date of Birth</label>
+        <input id="dob" type="text" placeholder="e.g. April 10, 1998"></div>
+      <div class="field"><label>Place of Birth</label>
+        <input id="pob" type="text" placeholder="e.g. Gbarnga, Bong County"></div>
+      <div class="field"><label>County of Origin</label>
+        <input id="county" type="text" placeholder="e.g. Nimba County, Liberia"></div>
+      <div class="field"><label>Present Address</label>
+        <input id="address" type="text" placeholder="e.g. Sinkor, Monrovia, Montserrado County"></div>
+      <div class="field"><label>Nationality</label>
+        <input id="nationality" type="text" placeholder="e.g. Liberian"></div>
+      <div class="field"><label>Marital Status</label>
+        <input id="maritalStatus" type="text" placeholder="e.g. Single"></div>
+      <div class="field"><label>Contact Number</label>
+        <input id="contact" type="tel" placeholder="e.g. +231 770 000 000"></div>
+      <div class="field col-span-2"><label>Email Address</label>
+        <input id="email" type="email" placeholder="e.g. mary.kollie@email.com"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Educational Background</div>
+    <div id="educationList"></div>
+    <button class="add-btn" onclick="addEducation()">+ Add Education</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Achievements</div>
+    <div id="achievementList"></div>
+    <button class="add-btn" onclick="addAchievement()">+ Add Achievement</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Skills</div>
+    <div id="skillList"></div>
+    <button class="add-btn" onclick="addSkill()">+ Add Skill Category</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experiences</div>
+    <div id="experienceList"></div>
+    <button class="add-btn" onclick="addExperience()">+ Add Experience</button>
+  </div>
+
+  <div class="generate-section">
+    <div class="btn-row">
+      <button class="generate-btn" onclick="generatePDF()">Download PDF</button>
+      <button class="generate-btn outline" onclick="generateCV()">Download Word (.docx)</button>
+    </div>
+    <div class="message" id="statusMsg"></div>
+  </div>
+
+</div>
+<script src="https://unpkg.com/docx@7.8.2/build/index.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+addEducation();
+addAchievement();
+addSkill();
+addExperience();
+
+function addEducation() {
+  document.getElementById('educationList').insertAdjacentHTML('beforeend', `
+  <div class="dynamic-entry">
+    <button class="remove-btn" onclick="removeEntry(this)" title="Remove">&#215;</button>
+    <div class="egrid-2">
+      <div class="field"><label>Period</label>
+        <input type="text" name="edu-period" placeholder="e.g. 2019 – 2023"></div>
+      <div class="field"><label>Institution</label>
+        <input type="text" name="edu-institution" placeholder="e.g. University of Liberia"></div>
+      <div class="field"><label>Location</label>
+        <input type="text" name="edu-location" placeholder="e.g. Monrovia, Liberia"></div>
+      <div class="field"><label>Qualification</label>
+        <input type="text" name="edu-qualification" placeholder="e.g. B.Sc. Computer Science"></div>
+    </div>
+  </div>`);
+}
+
+function addAchievement() {
+  document.getElementById('achievementList').insertAdjacentHTML('beforeend', `
+  <div class="dynamic-entry">
+    <button class="remove-btn" onclick="removeEntry(this)" title="Remove">&#215;</button>
+    <div class="egrid-ach">
+      <div class="field"><label>Year</label>
+        <input type="text" name="ach-year" placeholder="e.g. 2024, March"></div>
+      <div class="field"><label>Achievement</label>
+        <input type="text" name="ach-desc" placeholder="e.g. Best Student Award, University of Liberia"></div>
+    </div>
+  </div>`);
+}
+
+function addSkill() {
+  document.getElementById('skillList').insertAdjacentHTML('beforeend', `
+  <div class="dynamic-entry">
+    <button class="remove-btn" onclick="removeEntry(this)" title="Remove">&#215;</button>
+    <div class="egrid-ach">
+      <div class="field"><label>Category (optional)</label>
+        <input type="text" name="skill-category" placeholder="e.g. Programming Languages"></div>
+      <div class="field"><label>Skills (comma-separated)</label>
+        <input type="text" name="skill-items" placeholder="e.g. Python, JavaScript, TypeScript"></div>
+    </div>
+  </div>`);
+}
+
+function addExperience() {
+  document.getElementById('experienceList').insertAdjacentHTML('beforeend', `
+  <div class="dynamic-entry">
+    <button class="remove-btn" onclick="removeEntry(this)" title="Remove">&#215;</button>
+    <div class="egrid-2">
+      <div class="field"><label>Period</label>
+        <input type="text" name="exp-period" placeholder="e.g. June 2023 &#8211; Present"></div>
+      <div class="field"><label>Organization</label>
+        <input type="text" name="exp-org" placeholder="e.g. Ministry of Finance, Liberia"></div>
+      <div class="field col-span-2" style="grid-column:1/-1"><label>Job Title</label>
+        <input type="text" name="exp-title" placeholder="e.g. Administrative Assistant"></div>
+      <div class="field" style="grid-column:1/-1"><label>Duties &mdash; one per line</label>
+        <textarea name="exp-duties" placeholder="Prepare and manage official correspondence&#10;Coordinate meetings and departmental activities&#10;Maintain accurate records and filing systems"></textarea>
+      </div>
+    </div>
+  </div>`);
+}
+
+function removeEntry(btn) { btn.closest('.dynamic-entry').remove(); }
+
+// ── Notification config ───────────────────────────────────────────────────
+// 1. Go to https://web3forms.com
+// 2. Enter your email and click "Create Access Key"
+// 3. Paste the key below
+const WEB3FORMS_KEY = 'a39b81c1-56fa-40f0-99e5-b36b93c43662';
+
+function notifyOwner(name, email, contact) {
+  if (!WEB3FORMS_KEY || WEB3FORMS_KEY === 'YOUR_ACCESS_KEY_HERE') return;
+  const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_KEY,
+      subject: 'CV Generator — New Download',
+      message: `Name: ${name}\nEmail: ${email || '—'}\nContact: ${contact || '—'}\nTime: ${now}`
+    })
+  }).catch(() => {});
+}
+
+const gv = id => (document.getElementById(id) || {}).value?.trim() ?? '';
+
+function readSection(listId, fields) {
+  return [...document.getElementById(listId).querySelectorAll('.dynamic-entry')]
+    .map(entry => Object.fromEntries(
+      fields.map(f => [f, (entry.querySelector(`[name="${f}"]`) || {}).value?.trim() ?? ''])
+    ));
+}
+
+function collectData() {
+  const fullName = gv('fullName');
+  const personal = [
+    ['Name',             fullName],
+    ['Date of birth',    gv('dob')],
+    ['Place of Birth',   gv('pob')],
+    ['County of origin', gv('county')],
+    ['Present Address',  gv('address')],
+    ['Nationality',      gv('nationality')],
+    ['Marital Status',   gv('maritalStatus')],
+    ['Contact number',   gv('contact')],
+    ['Email',            gv('email')],
+  ].filter(([, v]) => v);
+  return {
+    fullName,
+    personal,
+    educations:   readSection('educationList',   ['edu-period','edu-institution','edu-location','edu-qualification']),
+    achievements: readSection('achievementList', ['ach-year','ach-desc']),
+    skills:       readSection('skillList',       ['skill-category','skill-items']),
+    experiences:  readSection('experienceList',  ['exp-period','exp-org','exp-title','exp-duties']),
+  };
+}
+
+function showMsg(text, type) {
+  const msg = document.getElementById('statusMsg');
+  msg.textContent   = text;
+  msg.className     = 'message ' + type;
+  msg.style.display = 'block';
+}
+
+async function generatePDF() {
+  document.getElementById('statusMsg').style.display = 'none';
+  const data = collectData();
+  if (!data.fullName) { showMsg('✗  Please enter your Full Name before generating.', 'error'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+  const ML = 20, MR = 20, MT = 22, PW = 210, PH = 297;
+  const TW = PW - ML - MR;   // 170 mm text width
+  const LH = 5.6;             // 11pt line height
+  let y = MT;
+
+  function checkPage(need) {
+    if (y + need > PH - 20) { doc.addPage(); y = MT; }
+  }
+
+  function ul(text, x, yy, align) {
+    const tw = doc.getTextWidth(text);
+    const sx = align === 'center' ? x - tw / 2 : x;
+    doc.setLineWidth(0.3);
+    doc.line(sx, yy + 0.9, sx + tw, yy + 0.9);
+  }
+
+  // Two-column row: leftText (string), rightParas (string[]), leftW (mm), gap (mm after row)
+  function twoColRow(leftText, rightParas, leftW, gap) {
+    const rX  = ML + leftW;
+    const rW  = TW - leftW;
+    doc.setFont('times', 'normal');
+    doc.setFontSize(11);
+
+    const leftLines = doc.splitTextToSize(leftText || '', leftW - 2);
+    const rightBlocks = rightParas.map(p => p ? doc.splitTextToSize(p, rW) : []);
+    const totalRight = rightBlocks.reduce((s, b) => s + b.length, 0);
+    const rowH = Math.max(leftLines.length, totalRight) * LH;
+    checkPage(rowH + gap + 2);
+
+    leftLines.forEach((l, i) => doc.text(l, ML, y + i * LH));
+
+    let ry = y;
+    rightBlocks.forEach(block => {
+      block.forEach((l, i) => doc.text(l, rX, ry + i * LH));
+      ry += block.length * LH;
+    });
+
+    y += rowH + gap;
+  }
+
+  function heading(text) {
+    checkPage(10);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(12);
+    doc.text(text, ML, y);
+    ul(text, ML, y);
+    y += 7;
+    doc.setFontSize(11);
+  }
+
+  function sectionGap() { y += 7; }
+
+  // ── Title ──────────────────────────────────────────────────────────────
+  doc.setFont('times', 'bold');
+  doc.setFontSize(14);
+  doc.text('CURRICULUM VITAE', PW / 2, y, { align: 'center' });
+  ul('CURRICULUM VITAE', PW / 2, y, 'center');
+  y += 10;
+
+  // ── Personal Data ──────────────────────────────────────────────────────
+  heading('Personal Data');
+  data.personal.forEach(([label, value], i) => {
+    twoColRow(label, [value], 44, i === data.personal.length - 1 ? 0 : 0.6);
+  });
+
+  // ── Educational Background ─────────────────────────────────────────────
+  sectionGap();
+  heading('EDUCATIONAL BACKGROUND');
+  const validEdu = data.educations.filter(e => e['edu-period'] || e['edu-institution'] || e['edu-qualification']);
+  validEdu.forEach((e, i) => {
+    let instLine = '';
+    if (e['edu-institution'] || e['edu-location']) {
+      instLine = ': ' + (e['edu-institution'] || '');
+      if (e['edu-location']) instLine += ', (' + e['edu-location'] + ')';
+    }
+    const rightParas = [instLine, e['edu-qualification']].filter(Boolean);
+    twoColRow(e['edu-period'] || '', rightParas.length ? rightParas : [''], 54, i === validEdu.length - 1 ? 0 : 4);
+  });
+
+  // ── Achievements ───────────────────────────────────────────────────────
+  sectionGap();
+  heading('ACHIEVEMENTS');
+  const validAch = data.achievements.filter(a => a['ach-year'] || a['ach-desc']);
+  validAch.forEach((a, i) => {
+    twoColRow(a['ach-year'] || '', [': ' + (a['ach-desc'] || '')], 44, i === validAch.length - 1 ? 0 : 1);
+  });
+
+  // ── Skills ─────────────────────────────────────────────────────────────
+  const validSkills = data.skills.filter(s => s['skill-items']);
+  if (validSkills.length) {
+    sectionGap();
+    heading('SKILLS');
+    validSkills.forEach((s, i) => {
+      const cat   = s['skill-category'];
+      const items = s['skill-items'];
+      twoColRow(cat || '', [cat ? items : '•  ' + items.split(',').map(x => x.trim()).join('   •  ')], cat ? 44 : 0, i === validSkills.length - 1 ? 0 : 1);
+    });
+  }
+
+  // ── Experiences ────────────────────────────────────────────────────────
+  sectionGap();
+  heading('EXPERIENCES');
+
+  data.experiences.forEach(ex => {
+    const period = ex['exp-period'];
+    const title  = ex['exp-title'];
+    const org    = ex['exp-org'];
+    const duties = (ex['exp-duties'] || '').split('\n').map(d => d.trim()).filter(Boolean);
+    if (!period && !title && !org && !duties.length) return;
+
+    const role   = [title, org ? 'at ' + org : ''].filter(Boolean).join(' ');
+    const header = [period, role].filter(Boolean).join(' : ');
+    const hLines = doc.splitTextToSize(header, TW);
+    checkPage(hLines.length * LH + 10);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(11);
+    hLines.forEach((l, i) => doc.text(l, ML, y + i * LH));
+    y += hLines.length * LH + 3;
+
+    if (duties.length) {
+      checkPage(LH + 3);
+      doc.setFont('times', 'bold');
+      doc.text('Duties', ML, y);
+      y += LH + 2;
+
+      doc.setFont('times', 'normal');
+      duties.forEach(d => {
+        const lines = doc.splitTextToSize(d, TW - 8);
+        checkPage(lines.length * LH + 2);
+        doc.text('•', ML + 3, y);
+        lines.forEach((l, i) => doc.text(l, ML + 8, y + i * LH));
+        y += lines.length * LH + 1;
+      });
+    }
+    y += 5;
+  });
+
+  // ── Save ───────────────────────────────────────────────────────────────
+  const parts    = data.fullName.trim().split(/\s+/);
+  const filename = parts.length >= 2
+    ? parts[0] + '_' + parts[parts.length - 1] + '_CV.pdf'
+    : parts[0] + '_CV.pdf';
+
+  doc.save(filename);
+  notifyOwner(data.fullName, gv('email'), gv('contact'));
+  showMsg('✓  PDF downloaded as "' + filename + '"', 'success');
+}
+
+async function generateCV() {
+  document.getElementById('statusMsg').style.display = 'none';
+  const { fullName, personal, educations, achievements, skills, experiences } = collectData();
+  if (!fullName) { showMsg('✗  Please enter your Full Name before generating.', 'error'); return; }
+
+  // ── docx constants ────────────────────────────────────────────────────
+  const TNR = 'Times New Roman';
+  const NB  = { style: docx.BorderStyle.NONE, size: 0, color: 'auto' };
+  const TABLE_BORDERS = { top: NB, bottom: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB };
+  const CELL_BORDERS  = { top: NB, bottom: NB, left: NB, right: NB };
+
+  // Text width: A4 (11906) minus left+right margins (1260 each) = 9386 twips
+  const TEXT_W = 9386;
+
+  // ── Helpers ───────────────────────────────────────────────────────────
+  function tr(text, opts) {
+    return new docx.TextRun(Object.assign({ text, font: TNR, size: 22 }, opts || {}));
+  }
+
+  function mkPara(runs, spBefore, spAfter, align) {
+    return new docx.Paragraph({
+      children: Array.isArray(runs) ? runs : [runs],
+      spacing: { before: spBefore || 0, after: spAfter === undefined ? 80 : spAfter },
+      alignment: align || docx.AlignmentType.LEFT
+    });
+  }
+
+  function mkCell(paras, isLeft) {
+    return new docx.TableCell({
+      borders: CELL_BORDERS,
+      verticalAlign: 'top',
+      margins: { top: 0, bottom: 0, left: 0, right: isLeft ? 200 : 0 },
+      children: Array.isArray(paras) ? paras : [paras]
+    });
+  }
+
+  function mkTable(rows, leftColW) {
+    return new docx.Table({
+      width: { size: TEXT_W, type: docx.WidthType.DXA },
+      columnWidths: [leftColW, TEXT_W - leftColW],
+      borders: TABLE_BORDERS,
+      rows
+    });
+  }
+
+  function heading(text) {
+    return new docx.Paragraph({
+      children: [new docx.TextRun({
+        text, font: TNR, size: 24, bold: true,
+        underline: { type: 'single', color: '000000' }
+      })],
+      spacing: { before: 280, after: 160 }
+    });
+  }
+
+  function blank() {
+    return new docx.Paragraph({ children: [tr('')], spacing: { before: 0, after: 0 } });
+  }
+
+  // ── Build document children ───────────────────────────────────────────
+  const children = [];
+
+  // Title
+  children.push(new docx.Paragraph({
+    alignment: docx.AlignmentType.CENTER,
+    children: [new docx.TextRun({
+      text: 'CURRICULUM VITAE', font: TNR, size: 28, bold: true,
+      underline: { type: 'single', color: '000000' }
+    })],
+    spacing: { before: 0, after: 360 }
+  }));
+
+  // ── Personal Data ─────────────────────────────────────────────────────
+  children.push(heading('Personal Data'));
+  const personalRows = personal.map(([label, value]) =>
+    new docx.TableRow({ children: [
+      mkCell(mkPara([tr(label)], 0, 100), true),
+      mkCell(mkPara([tr(value)], 0, 100), false)
+    ]})
+  );
+  if (personalRows.length) children.push(mkTable(personalRows, 2160));
+
+  // ── Educational Background ────────────────────────────────────────────
+  children.push(blank());
+  children.push(heading('EDUCATIONAL BACKGROUND'));
+
+  const validEdu = educations.filter(e => e['edu-period'] || e['edu-institution'] || e['edu-qualification']);
+  const eduRows = validEdu.map((e, i) => {
+    const isLast = i === validEdu.length - 1;
+    const entryGap = isLast ? 0 : 220;
+
+    const inst  = e['edu-institution'];
+    const loc   = e['edu-location'];
+    const qual  = e['edu-qualification'];
+    const period = e['edu-period'];
+
+    // Right cell: first line is ": Institution, (Location)", second line is qualification
+    const rightParas = [];
+    if (inst || loc) {
+      let line = ': ' + (inst || '');
+      if (loc) line += ', (' + loc + ')';
+      rightParas.push(mkPara([tr(line)], 0, qual ? 40 : entryGap));
+    }
+    if (qual) {
+      rightParas.push(mkPara([tr(qual)], 0, entryGap));
+    }
+    if (!rightParas.length) rightParas.push(mkPara([tr('')], 0, entryGap));
+
+    return new docx.TableRow({ children: [
+      mkCell(mkPara([tr(period || '')], 0, entryGap), true),
+      mkCell(rightParas, false)
+    ]});
+  });
+  if (eduRows.length) children.push(mkTable(eduRows, 2800));
+
+  // ── Achievements ──────────────────────────────────────────────────────
+  children.push(blank());
+  children.push(heading('ACHIEVEMENTS'));
+
+  const validAch = achievements.filter(a => a['ach-year'] || a['ach-desc']);
+  const achRows = validAch.map(a =>
+    new docx.TableRow({ children: [
+      mkCell(mkPara([tr(a['ach-year'] || '')], 0, 100), true),
+      mkCell(mkPara([tr(': ' + (a['ach-desc'] || ''))], 0, 100), false)
+    ]})
+  );
+  if (achRows.length) children.push(mkTable(achRows, 2160));
+
+  // ── Skills ────────────────────────────────────────────────────────────
+  const validSkills = skills.filter(s => s['skill-items']);
+  if (validSkills.length) {
+    children.push(blank());
+    children.push(heading('SKILLS'));
+    const skillRows = validSkills.map(s => {
+      const cat   = s['skill-category'];
+      const items = s['skill-items'];
+      return new docx.TableRow({ children: [
+        mkCell(mkPara([tr(cat || '')], 0, 80), true),
+        mkCell(mkPara([tr(items)], 0, 80), false)
+      ]});
+    });
+    children.push(mkTable(skillRows, 2160));
+  }
+
+  // ── Experiences ───────────────────────────────────────────────────────
+  children.push(blank());
+  children.push(heading('EXPERIENCES'));
+
+  experiences.forEach(ex => {
+    const period = ex['exp-period'];
+    const org    = ex['exp-org'];
+    const title  = ex['exp-title'];
+    const duties = (ex['exp-duties'] || '').split('\n').map(d => d.trim()).filter(Boolean);
+    if (!period && !org && !title && !duties.length) return;
+
+    // Bold header: "Period : Title at Organization"
+    const hRuns = [];
+    if (period) hRuns.push(tr(period, { bold: true }));
+    const role = [title, org ? 'at ' + org : ''].filter(Boolean).join(' ');
+    if (period && role) hRuns.push(tr(' : ', { bold: true }));
+    if (role)   hRuns.push(tr(role, { bold: true }));
+
+    if (hRuns.length) {
+      children.push(new docx.Paragraph({
+        children: hRuns,
+        alignment: docx.AlignmentType.BOTH,
+        spacing: { before: 200, after: 160 }
+      }));
+    }
+
+    if (duties.length) {
+      children.push(new docx.Paragraph({
+        children: [tr('Duties', { bold: true })],
+        spacing: { before: 0, after: 120 }
+      }));
+      duties.forEach(d => {
+        children.push(new docx.Paragraph({
+          children: [tr(d)],
+          numbering: { reference: 'cv-bullets', level: 0 },
+          alignment: docx.AlignmentType.BOTH,
+          spacing: { before: 0, after: 80 }
+        }));
+      });
+    }
+    children.push(blank());
+  });
+
+  // ── Assemble & download ───────────────────────────────────────────────
+  try {
+    const doc = new docx.Document({
+      numbering: {
+        config: [{
+          reference: 'cv-bullets',
+          levels: [{
+            level: 0,
+            format: 'bullet',
+            text: '•',
+            alignment: docx.AlignmentType.LEFT,
+            style: {
+              paragraph: { indent: { left: 720, hanging: 360 } },
+              run: { font: 'Symbol', size: 22 }
+            }
+          }]
+        }]
+      },
+      sections: [{
+        properties: {
+          page: { margin: { top: 1440, right: 1260, bottom: 1440, left: 1260 } }
+        },
+        children
+      }]
+    });
+
+    const blob = await docx.Packer.toBlob(doc);
+    const parts    = fullName.trim().split(/\s+/);
+    const filename = parts.length >= 2
+      ? parts[0] + '_' + parts[parts.length - 1] + '_CV.docx'
+      : parts[0] + '_CV.docx';
+
+    const url = URL.createObjectURL(blob);
+    const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    notifyOwner(fullName, gv('email'), gv('contact'));
+    showMsg('✓  Word document downloaded as "' + filename + '"', 'success');
+  } catch (err) {
+    console.error(err);
+    showMsg('✗  Error generating CV: ' + err.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
