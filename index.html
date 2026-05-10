@@ -248,26 +248,6 @@ function addExperience() {
 
 function removeEntry(btn) { btn.closest('.dynamic-entry').remove(); }
 
-// ── Notification config ───────────────────────────────────────────────────
-// 1. Go to https://web3forms.com
-// 2. Enter your email and click "Create Access Key"
-// 3. Paste the key below
-const WEB3FORMS_KEY = 'a39b81c1-56fa-40f0-99e5-b36b93c43662';
-
-function notifyOwner(name, email, contact) {
-  if (!WEB3FORMS_KEY || WEB3FORMS_KEY === 'YOUR_ACCESS_KEY_HERE') return;
-  const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-  fetch('https://api.web3forms.com/submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({
-      access_key: WEB3FORMS_KEY,
-      subject: 'CV Generator — New Download',
-      message: `Name: ${name}\nEmail: ${email || '—'}\nContact: ${contact || '—'}\nTime: ${now}`
-    })
-  }).catch(() => {});
-}
-
 const gv = id => (document.getElementById(id) || {}).value?.trim() ?? '';
 
 function readSection(listId, fields) {
@@ -459,7 +439,6 @@ async function generatePDF() {
     : parts[0] + '_CV.pdf';
 
   doc.save(filename);
-  notifyOwner(data.fullName, gv('email'), gv('contact'));
   showMsg('✓  PDF downloaded as "' + filename + '"', 'success');
 }
 
@@ -689,7 +668,6 @@ async function generateCV() {
     a.remove();
     URL.revokeObjectURL(url);
 
-    notifyOwner(fullName, gv('email'), gv('contact'));
     showMsg('✓  Word document downloaded as "' + filename + '"', 'success');
   } catch (err) {
     console.error(err);
